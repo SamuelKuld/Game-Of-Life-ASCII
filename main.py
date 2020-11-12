@@ -3,7 +3,7 @@ from msvcrt import getch
 import time
 
 
-def clear():
+def clear(): 
     print("\n" * 10)
 
 
@@ -34,8 +34,9 @@ def GetSimulations():
 
 
 class XCoordinate:
-    def __init__(self):
+    def __init__(self, position):
         self.type = "empty"
+        self.position = position
 
 
 class YCoordinate:
@@ -44,7 +45,7 @@ class YCoordinate:
 
 
 def getEmptyXRow(width):
-    return [XCoordinate() for i in range(width)]
+    return [XCoordinate(i) for i in range(width)]
 
 
 def getEmptyYColumns(height, width):
@@ -64,7 +65,12 @@ class Grid:
     def setHeight(self, height):
         self.height = height
 
+    def getGridSize(self):
+        return self.height * self.width
+
     def constructGrid(self, height, width):
+        self.setHeight(height)
+        self.setWidth(width)
         self.plotList.append(getEmptyYColumns(height, width))
 
     def isPlotListEmpty(self):
@@ -81,6 +87,25 @@ class Grid:
                     for unit in x_coordinate:
                         print(unit.type, end=" ")
                     print("")
+
+    def printGridUnitAndChangeUnit(self, value, x, y, unit, position):
+        if value == " ":
+            # print(position)
+            self.plotList[y][x][position].type = "empty"
+            print("", end=' ', flush=True)
+        else:
+            # print(position)
+            self.plotList[y][x][position].type = "full"
+            print("", end='.', flush=True)
+
+    def getGrid(self):
+        char_in = ""
+        for y_unit in range(len(self.plotList)):
+            for x_unit in range(len(self.plotList[y_unit])):
+                for unit in self.plotList[y_unit][x_unit]:
+                    char_in = getch().decode("utf-8")
+                    self.printGridUnitAndChangeUnit(char_in, x_unit, y_unit, unit, unit.position)
+                print("", flush=True)
 
 
 def getWidthFixed():
@@ -160,18 +185,11 @@ class TimerList:
 
 
 def run():
-    timer = TimerList()
-    for i in range(200):
-        timer.start()
-        grid = Grid()
-
-        grid.constructGrid(20, 10)
-        grid.printGrid()
-        clear()
-        timer.end()
-        timer.iterateTimer()
-    print("Took - %s seconds" % (timer.averageIterations()))
-    wait()
+    grid = Grid()
+    grid.constructGrid(10, 20)
+    grid.getGrid()
+    grid.printGrid()
+    input()
 
 
 if __name__ == "__main__":
