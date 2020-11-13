@@ -2,7 +2,6 @@ import os
 from msvcrt import getch
 import time
 
-
 def clear(): 
     print("\n" * 10)
 
@@ -21,7 +20,7 @@ def menu():
     print("Samuel's Game Of Life")
     print("_____________________")
     # TODO Update This Version Per Git Commit
-    print("Version 0.0.3")
+    print("Version 0.1.1")
     wait()
 
 
@@ -29,7 +28,7 @@ def GetSimulationsList():
     return os.listdir("simulations")
 
 
-def GetSimulations():
+def GetSimulationsString():
     return "\n".join(GetSimulationsList())
 
 
@@ -53,11 +52,12 @@ def getEmptyYColumns(height, width):
 
 
 class Grid:
+
     def __init__(self):
         self.plotList = []
-        self.plotListLength = len(self.plotList)
         self.height = 0
         self.width = 0
+        self.character_input = ""
 
     def setWidth(self, width):
         self.width = width
@@ -68,43 +68,73 @@ class Grid:
     def getGridSize(self):
         return self.height * self.width
 
+    def plotListConstruction(self, height, width):
+        self.plotList.append(getEmptyYColumns(height, width))
+
     def constructGrid(self, height, width):
         self.setHeight(height)
         self.setWidth(width)
-        self.plotList.append(getEmptyYColumns(height, width))
+        self.plotListConstruction(self.height, self.width)
+
+    def getPlotListLength(self):
+        return len(self.plotList)
 
     def isPlotListEmpty(self):
-        if self.plotListLength > 0:
+        print("PlotList Length = %s" % (self.getPlotListLength()))
+        if self.getPlotListLength() == 0:
             return True
-        return False
+        else:
+            return False
+
+    @staticmethod
+    def iterativePrinterForUnits(x_coordinate):
+        for unit in x_coordinate:
+            print(unit.type, end=" ")
+        print("")
+
+    def iterativePrinterForXCoordinates(self, y_coordinate):
+        for x_coordinate in y_coordinate:
+            self.iterativePrinterForUnits(x_coordinate)
+
+    def iterativeTypePrinter(self):
+        for y_coordinate in self.plotList:
+            self.iterativePrinterForXCoordinates(y_coordinate)
 
     def printGrid(self):
         if self.isPlotListEmpty():
             raise Exception("Attempted to print an empty grid.")
         else:
-            for y_coordinate in self.plotList:
-                for x_coordinate in y_coordinate:
-                    for unit in x_coordinate:
-                        print(unit.type, end=" ")
-                    print("")
+            self.iterativeTypePrinter()
 
-    def printGridUnitAndChangeUnit(self, value, x, y, unit, position):
-        if value == " ":
-            # print(position)
-            self.plotList[y][x][position].type = "empty"
-            print("", end=' ', flush=True)
+    def setPlotEmpty(self, x, y, position):
+        self.plotList[y][x][position].type = "empty"
+        print("", end=' ', flush=True)
+
+    def setPlotFull(self, x, y, position):
+        self.plotList[y][x][position].type = "full"
+        print("", end='.', flush=True)
+
+    def isCharInEmpty(self):
+        if self.character_input == " " or self.character_input == "" or self.character_input == "\n":
+            return True
         else:
-            # print(position)
-            self.plotList[y][x][position].type = "full"
-            print("", end='.', flush=True)
+            return False
+
+    def printGridUnitAndChangeUnit(self, x, y, position):
+        self.getPlot()
+        if self.character_input == " ":
+            self.setPlotEmpty(x, y, position)
+        else:
+            self.setPlotFull(x, y, position)
+
+    def getPlot(self):
+        self.character_input = getch().decode("utf-8")
 
     def getGrid(self):
-        char_in = ""
         for y_unit in range(len(self.plotList)):
             for x_unit in range(len(self.plotList[y_unit])):
                 for unit in self.plotList[y_unit][x_unit]:
-                    char_in = getch().decode("utf-8")
-                    self.printGridUnitAndChangeUnit(char_in, x_unit, y_unit, unit, unit.position)
+                    self.printGridUnitAndChangeUnit(x_unit, y_unit, unit.position)
                 print("", flush=True)
 
 
@@ -117,7 +147,8 @@ def getWidthFixed():
 def is_less_than_one(value):
     if value < 1:
         return True
-    return False
+    else:
+        return False
 
 
 def getWidth():
@@ -126,7 +157,8 @@ def getWidth():
         width = int(wait_return())
         if is_less_than_one(width):
             return False
-        return width
+        else:
+            return width
     except ValueError:
         return False
 
@@ -187,6 +219,7 @@ class TimerList:
 def run():
     grid = Grid()
     grid.constructGrid(10, 20)
+    grid.printGrid()
     grid.getGrid()
     grid.printGrid()
     input()
