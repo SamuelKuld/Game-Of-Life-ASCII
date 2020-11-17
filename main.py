@@ -2,6 +2,7 @@ import os
 from msvcrt import getch
 import time
 
+
 def clear(): 
     print("\n" * 10)
 
@@ -20,7 +21,7 @@ def menu():
     print("Samuel's Game Of Life")
     print("_____________________")
     # TODO Update This Version Per Git Commit
-    print("Version 0.1.1")
+    print("Version 0.2.0")
     wait()
 
 
@@ -35,20 +36,35 @@ def GetSimulationsString():
 class XCoordinate:
     def __init__(self, position):
         self.type = "empty"
+        self.character_type = " "
         self.position = position
-
-
-class YCoordinate:
-    def __init__(self):
-        self.XCoordinates = []
 
 
 def getEmptyXRow(width):
     return [XCoordinate(i) for i in range(width)]
 
 
-def getEmptyYColumns(height, width):
+def getPlotList(width, height):
     return [getEmptyXRow(width) for i in range(height)]
+
+
+class Unit:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        
+        self.listIndexX = 0 
+        self.listIndexY = 0 
+
+    def setX(self, x):
+        self.x = x
+
+    def setY(self, y):
+        self.y = y
+
+    def setUnit(self, x, y):
+        self.setX(x)
+        self.setY(y)
 
 
 class Grid:
@@ -69,9 +85,9 @@ class Grid:
         return self.height * self.width
 
     def plotListConstruction(self, height, width):
-        self.plotList.append(getEmptyYColumns(height, width))
+        self.plotList = getPlotList(width, height)
 
-    def constructGrid(self, height, width):
+    def constructGrid(self, width, height):
         self.setHeight(height)
         self.setWidth(width)
         self.plotListConstruction(self.height, self.width)
@@ -80,38 +96,28 @@ class Grid:
         return len(self.plotList)
 
     def isPlotListEmpty(self):
-        print("PlotList Length = %s" % (self.getPlotListLength()))
         if self.getPlotListLength() == 0:
             return True
         else:
             return False
 
-    @staticmethod
-    def iterativePrinterForUnits(x_coordinate):
-        for unit in x_coordinate:
-            print(unit.type, end=" ")
-        print("")
-
-    def iterativePrinterForXCoordinates(self, y_coordinate):
-        for x_coordinate in y_coordinate:
-            self.iterativePrinterForUnits(x_coordinate)
-
-    def iterativeTypePrinter(self):
-        for y_coordinate in self.plotList:
-            self.iterativePrinterForXCoordinates(y_coordinate)
-
     def printGrid(self):
         if self.isPlotListEmpty():
             raise Exception("Attempted to print an empty grid.")
         else:
-            self.iterativeTypePrinter()
+            for y_unit in range(len(self.plotList)):
+                for x_unit in range(len(self.plotList[y_unit])):
+                    print(self.plotList[y_unit][x_unit].character_type, end="")
+                print("")
 
     def setPlotEmpty(self, x, y, position):
-        self.plotList[y][x][position].type = "empty"
+        self.plotList[y][x].type = "empty"
+        self.plotList[y][x].character_type = " "
         print("", end=' ', flush=True)
 
     def setPlotFull(self, x, y, position):
-        self.plotList[y][x][position].type = "full"
+        self.plotList[y][x].type = "full"
+        self.plotList[y][x].character_type = "."
         print("", end='.', flush=True)
 
     def isCharInEmpty(self):
@@ -121,13 +127,13 @@ class Grid:
             return False
 
     def printGridUnitAndChangeUnit(self, x, y, position):
-        self.getPlot()
+        self.getUserInputPlot()
         if self.character_input == " ":
             self.setPlotEmpty(x, y, position)
         else:
             self.setPlotFull(x, y, position)
 
-    def getPlot(self):
+    def getUserInputPlot(self):
         self.character_input = getch().decode("utf-8")
 
     def getGrid(self):
@@ -136,6 +142,9 @@ class Grid:
                 for unit in self.plotList[y_unit][x_unit]:
                     self.printGridUnitAndChangeUnit(x_unit, y_unit, unit.position)
                 print("", flush=True)
+
+    def getUnitType(self, x, y):
+        return self.plotList[y][x].type
 
 
 def getWidthFixed():
@@ -218,11 +227,10 @@ class TimerList:
 
 def run():
     grid = Grid()
-    grid.constructGrid(10, 20)
-    grid.printGrid()
-    grid.getGrid()
-    grid.printGrid()
-    input()
+    grid.constructGrid(20, 10)
+    grid.plotList[2][5].type = "full"
+    print(grid.getUnitType(5, 2))
+    wait()
 
 
 if __name__ == "__main__":
