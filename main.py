@@ -21,7 +21,7 @@ def menu():
     print("Samuel's Game Of Life")
     print("_____________________")
     # TODO Update This Version Per Git Commit
-    print("Version 0.2.0")
+    print("Version 0.2.1")
     wait()
 
 
@@ -144,7 +144,60 @@ class Grid:
                 print("", flush=True)
 
     def getUnitType(self, x, y):
-        return self.plotList[y][x].type
+        try:
+            return self.plotList[y][x].type
+        except IndexError:
+            raise Exception(
+                "Attempted to get a plot that was not in proper bounds - Plot(%s , %s) - PlotListSize(%s , %s )" % (x, y, len(self.plotList[y]), len(self.plotList)))
+
+    def getUnit(self, x, y):
+        try:
+            return self.plotList[y][x]
+        except IndexError:
+            raise Exception(
+                "Attempted to get a plot that was not in proper bounds - Plot(%s , %s) - PlotListSize(%s , %s )" % (x, y, len(self.plotList[y]), len(self.plotList)))
+
+    def setUnitType(self, x, y, unit_type):
+        try:
+            self.plotList[y][x].type = unit_type
+        except IndexError:
+            raise Exception(
+                "Attempted to change a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s )" % (x, y, len(self.plotList[y]), len(self.plotList)))
+
+    @staticmethod
+    def getUnitBoolean(unit):
+        if unit.type == "full":
+            return True
+        else:
+            return False
+
+    def getUnitBelow(self, x, y):
+        try:
+            return self.getUnitBoolean(self.getUnit(x, y + 1))
+        except IndexError:
+            raise Exception(
+                "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x, y + 1))
+
+    def getUnitAbove(self, x, y):
+        try:
+            return self.getUnitBoolean(self.getUnit(x, y - 1))
+        except IndexError:
+            raise Exception(
+                "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x, y - 1))
+
+    def getUnitRight(self, x, y):
+        try:
+            return self.getUnitBoolean(self.getUnit(x + 1, y))
+        except IndexError:
+            raise Exception(
+                "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x + 1, y))
+
+    def getUnitLeft(self, x, y):
+        try:
+            return self.getUnitBoolean(self.getUnit(x - 1, y))
+        except IndexError:
+            raise Exception(
+                "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x - 1, y))
 
 
 def getWidthFixed():
@@ -228,7 +281,7 @@ class TimerList:
 def run():
     grid = Grid()
     grid.constructGrid(20, 10)
-    grid.plotList[2][5].type = "full"
+    grid.setUnitType(5, 2, "false")
     print(grid.getUnitType(5, 2))
     wait()
 
