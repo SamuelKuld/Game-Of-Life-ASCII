@@ -22,7 +22,7 @@ def menu():
     print("Samuel's Game Of Life")
     print("_____________________")
     # TODO Update This Version Per Git Commit
-    print("Version 0.2.1")
+    print("Version 0.3.0")
     wait()
 
 
