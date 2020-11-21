@@ -1,10 +1,11 @@
 import os
 from msvcrt import getch
 import time
+import copy
 
 
 def clear(): 
-    print("\n" * 10)
+    os.system("cls")
 
 
 def wait():
@@ -34,14 +35,13 @@ def GetSimulationsString():
 
 
 class XCoordinate:
-    def __init__(self, position):
+    def __init__(self):
         self.type = "empty"
         self.character_type = " "
-        self.position = position
 
 
 def getEmptyXRow(width):
-    return [XCoordinate(i) for i in range(width)]
+    return [XCoordinate() for i in range(width)]
 
 
 def getPlotList(width, height):
@@ -110,15 +110,15 @@ class Grid:
                     print(self.plotList[y_unit][x_unit].character_type, end="")
                 print("")
 
-    def setPlotEmpty(self, x, y, position):
+    def setPlotEmpty(self, x, y):
         self.plotList[y][x].type = "empty"
         self.plotList[y][x].character_type = " "
-        print("", end=' ', flush=True)
+        # print("", end=' ', flush=True)
 
-    def setPlotFull(self, x, y, position):
+    def setPlotFull(self, x, y):
         self.plotList[y][x].type = "full"
         self.plotList[y][x].character_type = "."
-        print("", end='.', flush=True)
+        # print("", end='.', flush=True)
 
     def isCharInEmpty(self):
         if self.character_input == " " or self.character_input == "" or self.character_input == "\n":
@@ -126,12 +126,12 @@ class Grid:
         else:
             return False
 
-    def printGridUnitAndChangeUnit(self, x, y, position):
+    def printGridUnitAndChangeUnit(self, x, y):
         self.getUserInputPlot()
         if self.character_input == " ":
-            self.setPlotEmpty(x, y, position)
+            self.setPlotEmpty(x, y)
         else:
-            self.setPlotFull(x, y, position)
+            self.setPlotFull(x, y)
 
     def getUserInputPlot(self):
         self.character_input = getch().decode("utf-8")
@@ -140,7 +140,7 @@ class Grid:
         for y_unit in range(len(self.plotList)):
             for x_unit in range(len(self.plotList[y_unit])):
                 for unit in self.plotList[y_unit][x_unit]:
-                    self.printGridUnitAndChangeUnit(x_unit, y_unit, unit.position)
+                    self.printGridUnitAndChangeUnit(x_unit, y_unit)
                 print("", flush=True)
 
     def getUnitType(self, x, y):
@@ -159,7 +159,12 @@ class Grid:
 
     def setUnitType(self, x, y, unit_type):
         try:
-            self.plotList[y][x].type = unit_type
+            if unit_type == "full":
+                self.plotList[y][x].type = unit_type
+                self.plotList[y][x].character_type = "."
+            else:
+                self.plotList[y][x].type = unit_type
+                self.plotList[y][x].character_type = " "
         except IndexError:
             raise Exception(
                 "Attempted to change a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s )" % (x, y, len(self.plotList[y]), len(self.plotList)))
@@ -173,31 +178,52 @@ class Grid:
 
     def getUnitBelow(self, x, y):
         try:
-            return self.getUnitBoolean(self.getUnit(x, y + 1))
+            return self.getUnit(x, y + 1)
         except IndexError:
             raise Exception(
                 "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x, y + 1))
 
     def getUnitAbove(self, x, y):
         try:
-            return self.getUnitBoolean(self.getUnit(x, y - 1))
+            return self.getUnit(x, y - 1)
         except IndexError:
             raise Exception(
                 "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x, y - 1))
 
     def getUnitRight(self, x, y):
         try:
-            return self.getUnitBoolean(self.getUnit(x + 1, y))
+            return self.getUnit(x + 1, y)
         except IndexError:
             raise Exception(
                 "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x + 1, y))
 
     def getUnitLeft(self, x, y):
         try:
-            return self.getUnitBoolean(self.getUnit(x - 1, y))
+            return self.getUnit(x - 1, y)
         except IndexError:
             raise Exception(
                 "Attempted to get a plot that was not in proper bounds - PlotGiven(%s , %s) - PlotListSize(%s , %s ) - PlotProcessed(%s , %s)" % (x, y, len(self.plotList[y]), len(self.plotList), x - 1, y))
+
+    def getTouchingUnits(self, x, y):
+        units_touching = []
+        if not y >= self.height - 1:
+            units_touching.append([self.getUnitBelow(x, y), [x, y + 1]])
+        if not y <= 0:
+            units_touching.append([self.getUnitAbove(x, y), [x, y - 1]])
+        if not x <= 0:
+            units_touching.append([self.getUnitLeft(x, y), [x - 1, y]])
+        if not x >= self.width - 1:
+            units_touching.append([self.getUnitRight(x, y), [x + 1, y]])
+        return units_touching
+
+    def tic(self):
+        new_grid = copy.deepcopy(self)
+        for y in range(len(self.plotList)):
+            for x in range(len(self.plotList[y])):
+                if self.getUnit(x, y).type == "full":
+                    for touching_units in self.getTouchingUnits(x, y):
+                        new_grid.setPlotFull(touching_units[1][0], touching_units[1][1])
+        self.plotList = new_grid.plotList
 
 
 def getWidthFixed():
@@ -280,9 +306,15 @@ class TimerList:
 
 def run():
     grid = Grid()
-    grid.constructGrid(20, 10)
-    grid.setUnitType(5, 2, "false")
-    print(grid.getUnitType(5, 2))
+    grid.constructGrid(200, 100)
+    grid.setPlotFull(100, 75)
+    grid.printGrid()
+    wait()
+    for i in range(100):
+        clear()
+        grid.tic()
+        grid.printGrid()
+        time.sleep(.1)
     wait()
 
 
