@@ -5,7 +5,7 @@ import random
 import copy
 
 
-def clear(): 
+def clear():
     os.system("cls")
 
 
@@ -53,9 +53,9 @@ class Unit:
     def __init__(self):
         self.x = 0
         self.y = 0
-        
-        self.listIndexX = 0 
-        self.listIndexY = 0 
+
+        self.listIndexX = 0
+        self.listIndexY = 0
 
     def setX(self, x):
         self.x = x
@@ -224,9 +224,11 @@ class Grid:
                 if self.getUnit(x, y).type == "full":
                     for touching_units in self.getTouchingUnits(x, y):
                         if random.randint(0, 1):
-                            new_grid.setPlotFull(touching_units[1][0], touching_units[1][1])
+                            new_grid.setPlotFull(
+                                touching_units[1][0], touching_units[1][1])
                         else:
-                            new_grid.setPlotEmpty(touching_units[1][0], touching_units[1][1])
+                            new_grid.setPlotEmpty(
+                                touching_units[1][0], touching_units[1][1])
         self.plotList = new_grid.plotList
 
 
@@ -310,7 +312,7 @@ class TimerList:
 
 def run():
     grid = Grid()
-    grid.constructGrid(20, 10)
+    grid.constructGrid(100, 50)
     grid.setPlotFull(5, 5)
     grid.printGrid()
     wait()
